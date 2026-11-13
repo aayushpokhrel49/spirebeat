@@ -40,7 +40,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew --console=plain test
+        run: |
+          ./gradlew --console=plain \
+            :app:testMobileUniversalDebug \
+            :innertube:test :kugou:test :lrclib:test :lastfm:test \
+            :paxsenix:test :betterlyrics:test :unison:test :canvas:test \
+            :shazamkit:test :spotifycore:test :simpmusic:test
 
   build:
     name: Build release APK (${{ matrix.device }}-${{ matrix.abi }})

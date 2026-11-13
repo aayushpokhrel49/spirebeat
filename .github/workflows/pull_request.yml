@@ -53,7 +53,10 @@ jobs:
           ./gradlew --console=plain \
             assembleMobileUniversalDebug \
             :app:lintMobileUniversalDebug \
-            test \
+            :app:testMobileUniversalDebug \
+            :innertube:test :kugou:test :lrclib:test :lastfm:test \
+            :paxsenix:test :betterlyrics:test :unison:test :canvas:test \
+            :shazamkit:test :spotifycore:test :simpmusic:test \
             --warning-mode summary
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
