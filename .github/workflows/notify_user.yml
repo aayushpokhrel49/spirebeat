@@ -1,0 +1,82 @@
+name: Comment when commit references issue
+
+on:
+  push: 
+    branches:
+      - main
+      - dev
+
+jobs:
+  notify-issue:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Extract issue numbers
+        id: extract
+        shell: bash
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          echo "Commit message:"
+          echo "$MESSAGE"
+          ISSUES=$(echo "$MESSAGE" \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -u \
+            | paste -sd "," -) || true
+
+          echo "issues=$ISSUES" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on referenced issues
+        if: steps.extract.outputs.issues != ''
+        uses: actions/github-script@v9
+        env:
+          ISSUES: ${{ steps.extract.outputs.issues }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issues = process.env.ISSUES
+              .split(",")
+              .filter(Boolean);
+
+            for (const issue_number of issues) {
+              try {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: Number(issue_number)
+                });
+
+                const author = issue.data.user.login;
+
+                const commitUrl = context.payload.head_commit.url;
+                const commitSha =
+                  context.payload.head_commit.id.substring(0, 7);
+
+                const body = [
+                  `Hey @${author}, This issue was referenced on commit [\`${commitSha}\`](${commitUrl}).`,
+                  "",
+                  "Make sure to try the latest nightly version:",
+                  "",
+                  "https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/dev/app-mobile-universal-release",
+                  "",
+                  "If this issue is resolved in the nightly build, please close this issue quickly 🚀"
+                ].join("\n");
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: Number(issue_number),
+                  body
+                });
+
+              } catch (error) {
+                console.log(
+                  `Failed for issue #${issue_number}: ${error.message}`
+                );
+              }
+            }

@@ -1,0 +1,154 @@
+name: Build APKs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev]
+    paths-ignore:
+      - 'README.md'
+      - 'README_JA.md'
+      - 'PRIVACY.md'
+      - 'CONTRIBUTING.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'renovate.json'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-cleanup: on-success
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run unit tests
+        run: ./gradlew --console=plain test
+
+  build:
+    name: Build release APK (${{ matrix.device }}-${{ matrix.abi }})
+    if: github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
+    runs-on: ubuntu-latest
+    needs: test
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: mobile
+            deviceName: Mobile
+            abi: arm64
+          - device: mobile
+            deviceName: Mobile
+            abi: armeabi
+          - device: mobile
+            deviceName: Mobile
+            abi: x86
+          - device: mobile
+            deviceName: Mobile
+            abi: x86_64
+          - device: mobile
+            deviceName: Mobile
+            abi: universal
+          - device: tv
+            deviceName: Tv
+            abi: universal
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-cleanup: on-success
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Resolve variant names
+        id: variant
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEVICE="${{ matrix.device }}"
+          ABI="${{ matrix.abi }}"
+          DEVICE_CAP="${{ matrix.deviceName }}"
+          ABI_CAP="$(tr '[:lower:]' '[:upper:]' <<< "${ABI:0:1}")${ABI:1}"
+          echo "gradle_task=assemble${DEVICE_CAP}${ABI_CAP}Release" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=app-${DEVICE}-${ABI}-release" >> "$GITHUB_OUTPUT"
+          echo "apk_name=app-${DEVICE}-${ABI}-release.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve build hash
+        id: build_hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" = "refs/heads/dev" ]; then
+            echo "value=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --console=plain "${{ steps.variant.outputs.gradle_task }}"
+        env:
+          PULL_REQUEST: 'false'
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          TOGETHER_BEARER_TOKEN: ${{ secrets.TOGETHER_BEARER_TOKEN }}
+          CANVAS_BEARER_TOKEN: ${{ secrets.CANVAS_BEARER_TOKEN }}
+          NIGHTLY_BUILD_HASH: ${{ steps.build_hash.outputs.value }}
+
+      - name: Sign APK
+        uses: ilharp/sign-android-release@v2.0.0
+        with:
+          releaseDir: app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Move signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_DIR="app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release"
+          mkdir -p "$RELEASE_DIR/out"
+          SIGNED_APK=$(find "$RELEASE_DIR" -type f \( -name "*-signed.apk" -o -name "*-unsigned-signed.apk" \) | head -n 1)
+          mv "$SIGNED_APK" "$RELEASE_DIR/out/${{ steps.variant.outputs.apk_name }}"
+
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.variant.outputs.artifact_name }}
+          path: app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release/out/${{ steps.variant.outputs.apk_name }}
+          if-no-files-found: error

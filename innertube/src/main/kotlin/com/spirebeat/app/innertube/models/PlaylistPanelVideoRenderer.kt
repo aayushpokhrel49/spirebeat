@@ -1,0 +1,37 @@
+/*
+ * SpireBeat (2026)
+ * © Aayush Pokhrel — github.com/aayushpokhrel49/spirebeat
+ * GPL-3.0 License | Contributors: see git history
+ * Do not remove or alter this notice. - Per GPL-3.0 Section 4 & Section 5
+ */
+
+/*
+ * SpireBeat (2026)
+ * © Aayush Pokhrel — github.com/aayushpokhrel49/spirebeat
+ * GPL-3.0 License | Contributors: see git history
+ * Do not remove or alter this notice. - Per GPL-3.0 Section 4 & Section 5
+ */
+
+
+
+
+
+package com.spirebeat.app.innertube.models
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class PlaylistPanelVideoRenderer(
+    val title: Runs?,
+    val lengthText: Runs?,
+    val longBylineText: Runs?,
+    val shortBylineText: Runs?,
+    val badges: List<Badges>?,
+    val videoId: String?,
+    val playlistSetVideoId: String?,
+    val selected: Boolean,
+    val thumbnail: Thumbnails,
+    val unplayableText: Runs?,
+    val menu: Menu?,
+    val navigationEndpoint: NavigationEndpoint,
+)
