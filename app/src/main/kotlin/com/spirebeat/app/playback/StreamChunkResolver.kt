@@ -23,7 +23,7 @@ internal fun resolveStreamChunkLength(
 ): Long? {
     if (chunkLength <= 0L || position < 0L) return null
 
-    val remainingLength = knownContentLength?.minus(position)?.takeIf { it > 0L }
+    val remainingLength = knownContentLength?.minus(position)?.takeIf { it >= 0L }
     val resolvedLength =
         listOfNotNull(
             chunkLength,
