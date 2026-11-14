@@ -17,6 +17,6 @@
         <bitmap
             android:antialias="true"
             android:gravity="center"
-            android:src="@drawable/about_appbar" />
+            android:src="@drawable/about_splash_logo" />
     </item>
 </layer-list>
