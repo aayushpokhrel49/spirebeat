@@ -200,6 +200,7 @@ fun AboutScreen(
                 painter = painterResource(R.drawable.about_splash_logo),
                 contentDescription = null,
                 modifier = Modifier
+                    .size(120.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceContainer)
                     .clickable { },

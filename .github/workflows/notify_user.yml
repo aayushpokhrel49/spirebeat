@@ -62,7 +62,7 @@ jobs:
                   "",
                   "Make sure to try the latest nightly version:",
                   "",
-                  "https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/dev/app-mobile-universal-release",
+                  "https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/main/app-mobile-universal-release",
                   "",
                   "If this issue is resolved in the nightly build, please close this issue quickly 🚀"
                 ].join("\n");

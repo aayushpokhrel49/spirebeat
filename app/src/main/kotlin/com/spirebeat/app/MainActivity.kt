@@ -57,7 +57,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -81,11 +80,6 @@ import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.RichTooltip
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -285,7 +279,6 @@ import com.spirebeat.app.utils.reportException
 import com.spirebeat.app.utils.setAppLocale
 import com.spirebeat.app.viewmodels.HomeViewModel
 import com.spirebeat.app.viewmodels.NetworkBannerViewModel
-import com.spirebeat.app.viewmodels.NewsViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
@@ -718,11 +711,9 @@ class MainActivity : ComponentActivity() {
                     val coroutineScope = rememberCoroutineScope()
                     val homeViewModel: HomeViewModel = hiltViewModel()
                     val networkBannerViewModel: NetworkBannerViewModel = hiltViewModel()
-                    val newsViewModel: NewsViewModel = hiltViewModel()
                     val allLocalItems by homeViewModel.allLocalItems.collectAsState()
                     val allYtItems by homeViewModel.allYtItems.collectAsState()
                     val networkBannerState by networkBannerViewModel.bannerState.collectAsStateWithLifecycle()
-                    val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsStateWithLifecycle()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val (previousTab) = rememberSaveable { mutableStateOf("home") }
                     val currentRoute = navBackStackEntry?.destination?.route
@@ -1408,22 +1399,12 @@ class MainActivity : ComponentActivity() {
                                                     WindowInsetsSides.Right
                                                 } else WindowInsetsSides.Horizontal) + WindowInsetsSides.Top),
                                                 title = {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        // app icon
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.about_splash_logo),
-                                                            contentDescription = null,
-                                                            modifier = Modifier
-                                                                .size(35.dp)
-                                                                .padding(end = 3.dp)
-                                                        )
-                                                        Text(
-                                                            text = stringResource(R.string.app_name),
-                                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis
-                                                        )
-                                                    }
+                                                    Text(
+                                                        text = stringResource(R.string.app_name),
+                                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
                                                 },
                                                 actions = {
                                                     IconButton(onClick = { navController.navigate("history") }) {
@@ -1431,39 +1412,6 @@ class MainActivity : ComponentActivity() {
                                                             painter = painterResource(R.drawable.history),
                                                             contentDescription = stringResource(R.string.history)
                                                         )
-                                                    }
-                                                    TooltipBox(
-                                                        positionProvider = if (hasUnreadNews)
-                                                            TooltipDefaults.rememberRichTooltipPositionProvider()
-                                                        else
-                                                            TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                                        tooltip = {
-                                                            if (hasUnreadNews) {
-                                                                RichTooltip(
-                                                                    title = { Text(stringResource(R.string.news_tooltip_title)) },
-                                                                ) {
-                                                                    Text(stringResource(R.string.news_tooltip_body))
-                                                                }
-                                                            } else {
-                                                                PlainTooltip {
-                                                                    Text(stringResource(R.string.news))
-                                                                }
-                                                            }
-                                                        },
-                                                        state = rememberTooltipState(),
-                                                    ) {
-                                                        IconButton(onClick = { navController.navigate("news") }) {
-                                                            BadgedBox(badge = {
-                                                                if (hasUnreadNews) {
-                                                                    Badge()
-                                                                }
-                                                            }) {
-                                                                Icon(
-                                                                    painter = painterResource(R.drawable.newspaper),
-                                                                    contentDescription = stringResource(R.string.news)
-                                                                )
-                                                            }
-                                                        }
                                                     }
                                                     IconButton(onClick = { navController.navigate("new_release") }) {
                                                         Icon(

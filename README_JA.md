@@ -48,7 +48,7 @@
 | チャンネル | リンク |
 |---|---|
 | **GitHub Releases**(署名済み APK) | [Releases](https://github.com/aayushpokhrel49/spirebeat/releases) |
-| ナイトリービルド(devブランチ) | [Nightly.link](https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/dev/app-mobile-universal-release) |
+| ナイトリービルド(mainブランチ) | [Nightly.link](https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/main/app-mobile-universal-release) |
 | Obtainium | [リポジトリ追加](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/aayushpokhrel49/spirebeat/) |
 | IzzyOnDroid | [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.spirebeat.app) |
 

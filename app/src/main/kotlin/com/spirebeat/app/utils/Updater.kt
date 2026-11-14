@@ -272,12 +272,19 @@ object Updater {
             latest
         }
 
-    suspend fun getCommitHistory(count: Int = 20, branch: String = "dev"): Result<List<GitCommit>> =
+    suspend fun getCommitHistory(count: Int = 20, branch: String = "main"): Result<List<GitCommit>> =
         runCatching {
             val response =
-                client.get("https://api.github.com/repos/aayushpokhrel49/spirebeat/commits?sha=$branch&per_page=$count")
-                    .bodyAsText()
-            val jsonArray = JSONArray(response)
+                client.get("https://api.github.com/repos/aayushpokhrel49/spirebeat/commits?sha=$branch&per_page=$count") {
+                    headers {
+                        append("Accept", "application/vnd.github+json")
+                        append("User-Agent", "SpireBeat")
+                    }
+                }
+            if (response.status.value !in 200..299) {
+                throw IllegalStateException("GitHub commits request failed: ${response.status}")
+            }
+            val jsonArray = JSONArray(response.bodyAsText())
             val commits = mutableListOf<GitCommit>()
             for (i in 0 until jsonArray.length()) {
                 val commitObj = jsonArray.getJSONObject(i)

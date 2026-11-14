@@ -87,7 +87,7 @@ Screenshots will be published with the first stable release.
 | Channel | Link |
 |---|---|
 | **GitHub Releases** (signed, per-ABI) | [Releases](https://github.com/aayushpokhrel49/spirebeat/releases) |
-| Nightly builds (dev branch) | [Nightly.link](https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/dev/app-mobile-universal-release) |
+| Nightly builds (main branch) | [Nightly.link](https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/main/app-mobile-universal-release) |
 | Obtainium | [Add repository](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/aayushpokhrel49/spirebeat/) |
 | F-Droid / IzzyOnDroid | [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.spirebeat.app) |
 | OpenAPK | [OpenAPK](https://www.openapk.net/spirebeat/com.spirebeat.app/) |

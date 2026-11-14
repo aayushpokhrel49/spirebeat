@@ -118,7 +118,7 @@ fun UpdateScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val nightlyInstallUrl = "https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/dev/app-mobile-universal-release"
+    val nightlyInstallUrl = "https://nightly.link/aayushpokhrel49/spirebeat/workflows/build/main/app-mobile-universal-release"
 
     val (enableUpdateNotification, onEnableUpdateNotificationChange) = rememberPreference(
         EnableUpdateNotificationKey,
