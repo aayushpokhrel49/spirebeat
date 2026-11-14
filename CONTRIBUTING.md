@@ -82,8 +82,7 @@ Signing secrets (see below) are only needed for the **Build APKs** and **Release
 |---|---|
 | `KEYSTORE` | Base64-encoded signing keystore |
 | `KEY_ALIAS` | Keystore alias |
-| `KEYSTORE_PASSWORD` | Keystore password |
-| `KEY_PASSWORD` | Key password |
+| `KEYSTORE_PASSWORD` | Keystore password (also used as the key password) |
 | `LASTFM_API_KEY`, `LASTFM_SECRET` | Optional — Last.fm scrobbling |
 | `TOGETHER_BEARER_TOKEN` | Optional — Together online hosting |
 | `CANVAS_BEARER_TOKEN` | Optional — canvas artwork service |
