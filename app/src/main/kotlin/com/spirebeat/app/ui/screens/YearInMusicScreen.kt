@@ -1190,7 +1190,7 @@ private fun SpireBeatBrand(
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Image(
-            painter = painterResource(R.drawable.app_icon_small),
+            painter = painterResource(R.drawable.about_splash_logo),
             contentDescription = null,
             modifier = Modifier.size(20.dp),
         )

@@ -72,18 +72,24 @@ jobs:
         run: |
           set -euo pipefail
           build_and_hash() {
-            ./gradlew clean assembleMobileUniversalRelease
+            local out="$1"
+            # Send Gradle's output to stderr so only the hash is captured.
+            ./gradlew clean assembleMobileUniversalRelease 1>&2
             local apk
             apk="$(find app/build/outputs/apk -type f -name "*.apk" ! -name "*signed*.apk" | head -n 1)"
             if [ -z "$apk" ] || [ ! -f "$apk" ]; then
-              echo "Could not find unsigned universal release APK"
-              find app/build/outputs/apk -maxdepth 6 -type f -print
+              echo "Could not find unsigned universal release APK" >&2
+              find app/build/outputs/apk -maxdepth 6 -type f -print >&2
               exit 1
             fi
-            sha256sum "$apk" | awk '{print $1}'
+            sha256sum "$apk" | awk '{print $1}' > "$out"
           }
-          SHA_1="$(build_and_hash)"
-          SHA_2="$(build_and_hash)"
+          SHA_FILE_1="$RUNNER_TEMP/sha1.txt"
+          SHA_FILE_2="$RUNNER_TEMP/sha2.txt"
+          build_and_hash "$SHA_FILE_1"
+          build_and_hash "$SHA_FILE_2"
+          SHA_1="$(cat "$SHA_FILE_1")"
+          SHA_2="$(cat "$SHA_FILE_2")"
           echo "sha256 #1: $SHA_1"
           echo "sha256 #2: $SHA_2"
           test "$SHA_1" = "$SHA_2"

@@ -1411,7 +1411,7 @@ class MainActivity : ComponentActivity() {
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                                         // app icon
                                                         Icon(
-                                                            painter = painterResource(R.drawable.about_appbar),
+                                                            painter = painterResource(R.drawable.about_splash_logo),
                                                             contentDescription = null,
                                                             modifier = Modifier
                                                                 .size(35.dp)
