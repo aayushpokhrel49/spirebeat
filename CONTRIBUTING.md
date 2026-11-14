@@ -101,16 +101,16 @@ Unit tests live in `app/src/test/kotlin/` (e.g. `StreamChunkResolverTest`). Libr
 
 ## Conventional commits
 
-We use [Conventional Commits](https://www.conventionalcommits.org/) — the Release workflow's changelog is generated from these prefixes:
+We use [Conventional Commits](https://www.conventionalcommits.org/) to keep history readable:
 
-| Prefix | Changelog section |
+| Prefix | Meaning |
 |---|---|
-| `feat:` | Features |
-| `fix:` | Fixes |
-| `perf:` | Performance |
-| `refactor:` | Refactors |
+| `feat:` | New feature |
+| `fix:` | Bug fix |
+| `perf:` | Performance improvement |
+| `refactor:` | Code restructure |
 | `docs:` | Documentation |
-| `build:` / `ci:` | Build / CI |
+| `build:` / `ci:` | Build or CI change |
 | `test:` / `style:` / `chore:` / `revert:` | Other changes |
 
 Example:

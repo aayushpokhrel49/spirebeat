@@ -66,7 +66,7 @@
 2. **Actions** → `Build APKs` → **Run workflow**
 3. 完了後、成果物(APK)をダウンロード
 
-署名付きリリースをビルドするには、シークレット `KEYSTORE` / `KEY_ALIAS` / `KEYSTORE_PASSWORD` / `KEY_PASSWORD` と、任意で `LASTFM_API_KEY` / `LASTFM_SECRET` / `TOGETHER_BEARER_TOKEN` / `CANVAS_BEARER_TOKEN` を設定してください。`Release` ワークフローは `app/build.gradle.kts` の `versionName` 変更を検出し、再現性の検証 → 6種のAPKビルド → 署名 → GitHub Release の自動作成を行います。
+署名付きリリースをビルドするには、シークレット `KEYSTORE` / `KEY_ALIAS` / `KEYSTORE_PASSWORD` / `KEY_PASSWORD` と、任意で `LASTFM_API_KEY` / `LASTFM_SECRET` / `TOGETHER_BEARER_TOKEN` / `CANVAS_BEARER_TOKEN` を設定してください。`main` へのプッシュが成功するたびに、6種のAPKのビルド・署名・GitHub Release の自動作成が行われます。新しいバージョンを公開するには `app/build.gradle.kts` の `versionName` を更新してください。
 
 ### ローカルビルド
 

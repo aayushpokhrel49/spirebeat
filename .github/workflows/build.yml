@@ -190,3 +190,83 @@ jobs:
           name: ${{ steps.variant.outputs.artifact_name }}
           path: ${{ steps.release_dir.outputs.release_dir }}/out/${{ steps.variant.outputs.apk_name }}
           if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
+    permissions:
+      contents: write
+    concurrency:
+      group: spirebeat-release-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download signed APKs
+        uses: actions/download-artifact@v8
+        with:
+          path: release_apks
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Collect APKs and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          find release_apks -type f -name "*.apk" -exec cp {} dist/ \;
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          ls -lh dist
+
+      - name: Build release notes
+        shell: bash
+        run: |
+          cat > release_notes.md <<EOF
+          ## SpireBeat ${{ steps.meta.outputs.version }}
+
+          **Build:** \`${{ steps.meta.outputs.short_sha }}\`
+          **Version code:** ${{ steps.meta.outputs.version_code }}
+
+          ### Downloads
+
+          | APK | Device |
+          | --- | --- |
+          | \`app-mobile-universal-release.apk\` | All phones — recommended |
+          | \`app-mobile-arm64-release.apk\` | 64-bit ARM phones |
+          | \`app-mobile-armeabi-release.apk\` | 32-bit ARM phones |
+          | \`app-mobile-x86-release.apk\` | 32-bit x86 devices |
+          | \`app-mobile-x86_64-release.apk\` | 64-bit x86 devices |
+          | \`app-tv-universal-release.apk\` | Android TV |
+
+          SHA-256 checksums are included in \`SHA256SUMS.txt\`.
+          EOF
+          cat release_notes.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          fi
+          gh release create "$TAG" \
+            -R "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "SpireBeat ${{ steps.meta.outputs.version }}" \
+            --notes-file release_notes.md \
+            dist/*.apk dist/SHA256SUMS.txt

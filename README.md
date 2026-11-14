@@ -121,7 +121,7 @@ This repository ships a full CI pipeline — no local Android SDK needed.
    | `TOGETHER_BEARER_TOKEN` | Optional, Together online hosting |
    | `CANVAS_BEARER_TOKEN` | Optional, canvas artwork service |
 
-   The `Release` workflow automatically detects a `versionName` change in `app/build.gradle.kts`, verifies the build is reproducible (two builds, identical SHA-256), builds all six APK variants, signs them, and publishes a GitHub Release with an auto-generated changelog.
+   Every successful push to `main` automatically builds and signs all six APK variants, then publishes a GitHub Release tagged `v<versionName>` containing the APKs and a `SHA256SUMS.txt` checksum file. Bump `versionName` in `app/build.gradle.kts` to publish a new version.
 
 ### Building locally
 
