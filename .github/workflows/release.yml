@@ -158,10 +158,43 @@ jobs:
           TOGETHER_BEARER_TOKEN: ${{ secrets.TOGETHER_BEARER_TOKEN }}
           CANVAS_BEARER_TOKEN: ${{ secrets.CANVAS_BEARER_TOKEN }}
 
+      - name: Resolve release output directory
+        id: release_dir
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEVICE="${{ matrix.device }}"
+          ABI="${{ matrix.abi }}"
+          DEVICE_CAP="$(tr '[:lower:]' '[:upper:]' <<< "${DEVICE:0:1}")${DEVICE:1}"
+          ABI_CAP="$(tr '[:lower:]' '[:upper:]' <<< "${ABI:0:1}")${ABI:1}"
+          CANDIDATES=(
+            "app/build/outputs/apk/${DEVICE}/${ABI}/release"
+            "app/build/outputs/apk/${DEVICE}${ABI_CAP}/release"
+            "app/build/outputs/apk/${DEVICE_CAP}${ABI_CAP}/release"
+            "app/build/outputs/apk/${DEVICE_CAP}/${ABI_CAP}/release"
+            "app/build/outputs/apk/${ABI}/${DEVICE}/release"
+          )
+          for d in "${CANDIDATES[@]}"; do
+            if find "$d" -maxdepth 1 -type f -name "*.apk" -print -quit 2>/dev/null | grep -q .; then
+              echo "release_dir=$d" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          FOUND_APK="$(find app/build/outputs/apk -type f -name "*.apk" | head -n 1 || true)"
+          if [ -n "${FOUND_APK:-}" ]; then
+            echo "release_dir=$(dirname "$FOUND_APK")" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Could not resolve APK release output directory for DEVICE=$DEVICE ABI=$ABI"
+          find app/build/outputs/apk -maxdepth 8 -type d -print || true
+          exit 1
+
       - name: Sign APK
         uses: ilharp/sign-android-release@v2.0.0
         with:
-          releaseDir: app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release/
+          releaseDir: ${{ steps.release_dir.outputs.release_dir }}/
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -172,16 +205,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_DIR="app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release"
+          RELEASE_DIR="${{ steps.release_dir.outputs.release_dir }}"
           mkdir -p "$RELEASE_DIR/out"
-          SIGNED_APK=$(find "$RELEASE_DIR" -type f \( -name "*-signed.apk" -o -name "*-unsigned-signed.apk" \) | head -n 1)
+          SIGNED_APK=$(find "$RELEASE_DIR" -maxdepth 1 -type f \( -name "*-signed.apk" -o -name "*-unsigned-signed.apk" \) | head -n 1)
           mv "$SIGNED_APK" "$RELEASE_DIR/out/${{ steps.variant.outputs.apk_name }}"
 
       - name: Upload signed APK
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.variant.outputs.artifact_name }}
-          path: app/build/outputs/apk/${{ matrix.device }}/${{ matrix.abi }}/release/out/${{ steps.variant.outputs.apk_name }}
+          path: ${{ steps.release_dir.outputs.release_dir }}/out/${{ steps.variant.outputs.apk_name }}
           if-no-files-found: error
 
   create-release:
